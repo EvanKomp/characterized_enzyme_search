@@ -16,7 +16,6 @@ hmmsearch \
     --cpu 40 \
     -E 1e-10 \
     --incE 1e-10 \
-    -A "${outname}.sto" \
     --tblout "${outname}.tbl" \
     --domtblout "${outname}.domtbl" \
     --noali \

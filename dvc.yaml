@@ -1,0 +1,95 @@
+stages:
+  hmmbuild:
+    cmd: >
+      hmmbuild ${hmmbuild_options} 
+      ./intermediates/characterized.hmm 
+      ${input_alignment}
+    deps:
+      - ${input_alignment}
+    params:
+      - hmmbuild_options
+      - input_alignment
+    outs:
+      - ./intermediates/characterized.hmm 
+
+  hmmsearch:
+    cmd: >
+      ./scripts/hmmsearch.sh 
+      ./intermediates/characterized.hmm 
+      ./intermediates/hmmsearch_output 
+      ${target_db}
+    deps:
+      - ./intermediates/characterized.hmm
+      - ./scripts/hmmsearch.sh
+    params:
+      - target_db
+      - hmmsearch_evalue
+      - hmmsearch_domevalue
+    outs:
+      - ./intermediates/hmmsearch_output.tbl
+      - ./intermediates/hmmsearch_output.domtbl
+      - ./intermediates/hmmsearch_output.out
+
+  remove_uniprot_hits:
+    cmd: >
+      python ./scripts/remove_uniprot_hits.py 
+      ./intermediates/hmmsearch_output.out 
+      ${input_alignment} 
+      ./intermediates/removed_uniprot_hits.txt
+    deps:
+      - ./intermediates/hmmsearch_output.out
+      - ${input_alignment}
+      - ./scripts/remove_uniprot_hits.py
+    params:
+      - input_alignment
+    outs:
+      - ./intermediates/removed_uniprot_hits.txt
+
+  remove_poor_coverage:
+    cmd: >
+      python ./scripts/remove_poor_coverage.py 
+      ./intermediates/hmmsearch_output.out 
+      ./intermediates/characterized.hmm 
+      ${min_coverage} 
+      ./intermediates/removed_poor_coverage.txt
+    deps:
+      - ./intermediates/hmmsearch_output.out
+      - ./intermediates/characterized.hmm
+      - ./scripts/remove_poor_coverage.py
+    params:
+      - min_coverage
+    outs:
+      - ./intermediates/removed_poor_coverage.txt
+
+  retrieve_sequences:
+    cmd: >
+      python ./scripts/retrieve_sequences.py 
+      ./intermediates/hmmsearch_output.out 
+      ./intermediates/removed_uniprot_hits.txt 
+      ./intermediates/removed_poor_coverage.txt 
+      ${target_db} 
+      ./intermediates/retrieved_sequences.fasta
+    deps:
+      - ./intermediates/hmmsearch_output.out
+      - ./intermediates/removed_uniprot_hits.txt
+      - ./intermediates/removed_poor_coverage.txt
+      - ./scripts/retrieve_sequences.py
+    params:
+      - target_db
+    outs:
+      - ./intermediates/retrieved_sequences.fasta
+
+  hmmalign:
+    cmd: >
+      hmmalign 
+      --trim 
+      --amino 
+      --outformat a2m 
+      ./intermediates/characterized.hmm 
+      ./intermediates/retrieved_sequences.fasta 
+      > ./outputs/final_alignment.a2m
+    deps:
+      - ./intermediates/characterized.hmm
+      - ./intermediates/retrieved_sequences.fasta
+    outs:
+      - ./outputs/final_alignment.a2m
