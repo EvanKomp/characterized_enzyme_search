@@ -1,13 +1,15 @@
 # Input files
 input_alignment: "./inputs/pdc_all_orgs.fasta"
-target_db: "/datasets/UniprotKB/uniprot_sprot.fasta"
+db_location: /datasets/UniprotKB/
+target_dbs:
+  - "uniprot_sprot.fasta"
+  - "uniprot_trembl.fasta"
 
-# HMMbuild parameters
+# hmm search
 hmmbuild_options: "--amino"
+hmmsearch_evalue: 1e-90
+min_coverage: 0.85
 
-# HMMsearch parameters
-hmmsearch_evalue: 1e-20
-hmmsearch_domevalue: 1e-20
-
-# Filtering parameters
-min_coverage: 0.7
+# clustering
+mmseqs_min_seq_id: 0.9
+mmseqs_coverage: 0.9

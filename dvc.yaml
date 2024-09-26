@@ -1,95 +1,134 @@
 stages:
   hmmbuild:
-    cmd: >
-      hmmbuild ${hmmbuild_options} 
-      ./intermediates/characterized.hmm 
-      ${input_alignment}
-    deps:
+    cmd: hmmbuild ${hmmbuild_options} ./intermediates/characterized.hmm ${input_alignment}
+    deps: 
       - ${input_alignment}
-    params:
+    params: 
       - hmmbuild_options
       - input_alignment
-    outs:
-      - ./intermediates/characterized.hmm 
+    outs: 
+      - ./intermediates/characterized.hmm
 
   hmmsearch:
-    cmd: >
-      ./scripts/hmmsearch.sh 
-      ./intermediates/characterized.hmm 
-      ./intermediates/hmmsearch_output 
-      ${target_db}
-    deps:
-      - ./intermediates/characterized.hmm
-      - ./scripts/hmmsearch.sh
-    params:
-      - target_db
-      - hmmsearch_evalue
-      - hmmsearch_domevalue
-    outs:
-      - ./intermediates/hmmsearch_output.tbl
-      - ./intermediates/hmmsearch_output.domtbl
-      - ./intermediates/hmmsearch_output.out
+    foreach: ${target_dbs}
+    do:
+      cmd: >
+        ./scripts/hmmsearch.sh 
+        ./intermediates/characterized.hmm 
+        ./intermediates/hmmsearch_output_${item} 
+        ${db_location}/${item}
+        ${hmmsearch_evalue}
+      deps: 
+        - ./intermediates/characterized.hmm
+        - ./scripts/hmmsearch.sh
+      params: 
+        - hmmsearch_evalue
+        - db_location
+      outs:
+        - ./intermediates/hmmsearch_output_${item}.tbl
+        - ./intermediates/hmmsearch_output_${item}.domtbl
+        - ./intermediates/hmmsearch_output_${item}.out
 
   remove_uniprot_hits:
-    cmd: >
-      python ./scripts/remove_uniprot_hits.py 
-      ./intermediates/hmmsearch_output.out 
-      ${input_alignment} 
-      ./intermediates/removed_uniprot_hits.txt
-    deps:
-      - ./intermediates/hmmsearch_output.out
-      - ${input_alignment}
-      - ./scripts/remove_uniprot_hits.py
-    params:
-      - input_alignment
-    outs:
-      - ./intermediates/removed_uniprot_hits.txt
+    foreach: ${target_dbs}
+    do:
+      cmd: >
+        python ./scripts/remove_uniprot_hits.py 
+        ./intermediates/hmmsearch_output_${item}.out 
+        ${input_alignment} 
+        ./intermediates/removed_uniprot_hits_${item}.txt
+      deps:
+        - ./intermediates/hmmsearch_output_${item}.out
+        - ${input_alignment}
+        - ./scripts/remove_uniprot_hits.py
+      params: 
+        - input_alignment
+      outs: 
+        - ./intermediates/removed_uniprot_hits_${item}.txt
 
   remove_poor_coverage:
-    cmd: >
-      python ./scripts/remove_poor_coverage.py 
-      ./intermediates/hmmsearch_output.out 
-      ./intermediates/characterized.hmm 
-      ${min_coverage} 
-      ./intermediates/removed_poor_coverage.txt
-    deps:
-      - ./intermediates/hmmsearch_output.out
-      - ./intermediates/characterized.hmm
-      - ./scripts/remove_poor_coverage.py
-    params:
-      - min_coverage
-    outs:
-      - ./intermediates/removed_poor_coverage.txt
+    foreach: ${target_dbs}
+    do:
+      cmd: >
+        python ./scripts/remove_poor_coverage.py 
+        ./intermediates/hmmsearch_output_${item}.out 
+        ./intermediates/characterized.hmm 
+        ${min_coverage} 
+        ./intermediates/removed_poor_coverage_${item}.txt
+      deps:
+        - ./intermediates/hmmsearch_output_${item}.out
+        - ./intermediates/characterized.hmm
+        - ./scripts/remove_poor_coverage.py
+      params: 
+        - min_coverage
+        - db_location
+      outs: 
+        - ./intermediates/removed_poor_coverage_${item}.txt
 
   retrieve_sequences:
-    cmd: >
-      python ./scripts/retrieve_sequences.py 
-      ./intermediates/hmmsearch_output.out 
-      ./intermediates/removed_uniprot_hits.txt 
-      ./intermediates/removed_poor_coverage.txt 
-      ${target_db} 
-      ./intermediates/retrieved_sequences.fasta
+    foreach: ${target_dbs}
+    do:
+      cmd: >
+        python ./scripts/retrieve_sequences.py 
+        ./intermediates/hmmsearch_output_${item}.out 
+        ./intermediates/removed_uniprot_hits_${item}.txt 
+        ./intermediates/removed_poor_coverage_${item}.txt 
+        ${db_location}/${item}
+        ./intermediates/retrieved_sequences_${item}.fasta
+      deps:
+        - ./intermediates/hmmsearch_output_${item}.out
+        - ./intermediates/removed_uniprot_hits_${item}.txt
+        - ./intermediates/removed_poor_coverage_${item}.txt
+        - ./scripts/retrieve_sequences.py
+      outs: 
+        - ./intermediates/retrieved_sequences_${item}.fasta
+      params: 
+        - db_location
+
+  combine_sequences:
+    cmd: |
+      cat ./intermediates/retrieved_sequences_uniprot_sprot.fasta.fasta > ./outputs/combined_hits.fasta && cat ./intermediates/retrieved_sequences_uniprot_trembl.fasta.fasta >> ./outputs/combined_hits.fasta
     deps:
-      - ./intermediates/hmmsearch_output.out
-      - ./intermediates/removed_uniprot_hits.txt
-      - ./intermediates/removed_poor_coverage.txt
-      - ./scripts/retrieve_sequences.py
-    params:
-      - target_db
+      - ./intermediates/retrieved_sequences_uniprot_sprot.fasta.fasta
+      - ./intermediates/retrieved_sequences_uniprot_trembl.fasta.fasta
     outs:
-      - ./intermediates/retrieved_sequences.fasta
+      - ./outputs/combined_hits.fasta
 
   hmmalign:
+  # add the original alignment to the hmm alignment
     cmd: >
       hmmalign 
+      --mapali ${input_alignment}
       --trim 
       --amino 
       --outformat a2m 
       ./intermediates/characterized.hmm 
-      ./intermediates/retrieved_sequences.fasta 
-      > ./outputs/final_alignment.a2m
+      ./outputs/combined_hits.fasta
+      >> ./outputs/final_alignment.a2m
     deps:
+      - ${input_alignment}
       - ./intermediates/characterized.hmm
-      - ./intermediates/retrieved_sequences.fasta
-    outs:
+      - ./outputs/combined_hits.fasta
+    outs: 
       - ./outputs/final_alignment.a2m
+    params:
+      - input_alignment
+
+  # mmseqs_cluster:
+  #   cmd: >
+  #     mmseqs easy-cluster 
+  #     ./outputs/combined_sequences.fasta 
+  #     ./outputs/clustered_sequences 
+  #     ./tmp 
+  #     --min-seq-id ${mmseqs_min_seq_id} 
+  #     -c ${mmseqs_coverage} 
+  #     --cov-mode 0 
+  #     && rm -rf ./tmp
+  #   deps:
+  #     - ./outputs/combined_sequences.fasta
+  #   params:
+  #     - mmseqs_min_seq_id
+  #     - mmseqs_coverage
+  #   outs:
+  #     - ./outputs/clustered_sequences_rep_seq.fasta
+  #     - ./outputs/clustered_sequences_cluster.tsv
