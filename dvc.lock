@@ -132,29 +132,26 @@ stages:
       md5: e1a55d62475309d3e7e7859e0e9a736d
       size: 99577
   hmmalign:
-    cmd: "hmmalign  --mapali ./inputs/pdc_all_orgs.fasta --trim  --amino  --outformat
-      a2m  ./intermediates/characterized.hmm  ./outputs/combined_hits.fasta >> ./outputs/final_alignment.a2m\n"
+    cmd: "hmmalign  --trim  --amino  --outformat a2m  ./intermediates/characterized.hmm\
+      \  ./outputs/combined_hits.fasta >> ./outputs/combined_hits_aligned.a2m\n"
     deps:
-    - path: ./inputs/pdc_all_orgs.fasta
+    - path: ./inputs/ec4.1.1.1_brenda_enzymes_nonredundant_msa.mfa
       hash: md5
-      md5: 9facac95e50e7935f03b1a63b894f7da
-      size: 12732
+      md5: c2633ce1820b3c6bdbfb643d64a6984b
+      size: 8493
     - path: ./intermediates/characterized.hmm
       hash: md5
-      md5: 19ec9c4f027479ae8cfe3287886bbab6
-      size: 260951
+      md5: b322ee958d79b717b089b05198348fe4
+      size: 260050
     - path: ./outputs/combined_hits.fasta
       hash: md5
-      md5: 48f81d704e5f9827cc86e500fda19107
-      size: 6691790
-    params:
-      params.yaml:
-        input_alignment: ./inputs/pdc_all_orgs.fasta
+      md5: 9cf1f6c6ae53a702b406c9acfb419353
+      size: 6679974
     outs:
-    - path: ./outputs/final_alignment.a2m
+    - path: ./outputs/combined_hits_aligned.a2m
       hash: md5
-      md5: 5a699cab3a4536d9ec61cdd4c47f8c62
-      size: 6543249
+      md5: 9cd8c1087c44c545eaca99427482fa5d
+      size: 6514323
   hmmsearch@uniprot_sprot.fasta:
     cmd: "./scripts/hmmsearch.sh  ./intermediates/characterized.hmm  ./intermediates/hmmsearch_output_uniprot_sprot.fasta\
       \  /datasets/UniprotKB//uniprot_sprot.fasta 1e-90\n"
@@ -549,3 +546,49 @@ stages:
       hash: md5
       md5: 9cf1f6c6ae53a702b406c9acfb419353
       size: 6679974
+  cluster_hits:
+    cmd: "mmseqs easy-cluster  ./outputs/combined_hits.fasta  ./outputs/clustered_sequences\
+      \  ./tmp  --min-seq-id 0.8  -c 0.9  --cov-mode 0  && rm -rf ./tmp\n"
+    deps:
+    - path: ./outputs/combined_hits.fasta
+      hash: md5
+      md5: 9cf1f6c6ae53a702b406c9acfb419353
+      size: 6679974
+    params:
+      params.yaml:
+        mmseqs_coverage: 0.9
+        mmseqs_min_seq_id: 0.8
+    outs:
+    - path: ./outputs/clustered_sequences_all_seqs.fasta
+      hash: md5
+      md5: 2e305e06dd45adcd365f82f864e5c239
+      size: 6623073
+    - path: ./outputs/clustered_sequences_cluster.tsv
+      hash: md5
+      md5: 9e6dbaee1e2cf97fca57036106fc75bd
+      size: 194018
+    - path: ./outputs/clustered_sequences_rep_seq.fasta
+      hash: md5
+      md5: 739ee4860140bf50604c93e5bd6e3d93
+      size: 1879071
+  compare_hits_to_input_seqs:
+    cmd: "python ./scripts/compute_pid_coverage.py ./inputs/ec4.1.1.1_brenda_enzymes_nonredundant_msa.mfa
+      ./outputs/combined_hits.fasta ./outputs/hit_comparisons.tsv\n"
+    deps:
+    - path: ./inputs/ec4.1.1.1_brenda_enzymes_nonredundant_msa.mfa
+      hash: md5
+      md5: c2633ce1820b3c6bdbfb643d64a6984b
+      size: 8493
+    - path: ./outputs/combined_hits.fasta
+      hash: md5
+      md5: 9cf1f6c6ae53a702b406c9acfb419353
+      size: 6679974
+    - path: ./scripts/compute_pid_coverage.py
+      hash: md5
+      md5: ac313ccfc3640e2c6c4d1fb3168834c7
+      size: 2897
+    outs:
+    - path: ./outputs/hit_comparisons.tsv
+      hash: md5
+      md5: 5b84b6f7d1a41c90a674cd4381356882
+      size: 119511

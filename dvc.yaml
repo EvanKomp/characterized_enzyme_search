@@ -85,13 +85,6 @@ stages:
       params: 
         - db_location
 
-  test_stage:
-    cmd: echo "${target_dbs}" > test.txt
-    outs:
-      - test.txt
-    params:
-      - target_dbs
-
   combine_fasta:
     cmd: >
       python ./scripts/combine_fasta.py
@@ -104,63 +97,52 @@ stages:
     params:
       - target_dbs
 
-  # hmmalign:
-  # # add the original alignment to the hmm alignment
-  #   cmd: >
-  #     hmmalign 
-  #     --mapali ${input_alignment}
-  #     --trim 
-  #     --amino 
-  #     --outformat a2m 
-  #     ./intermediates/characterized.hmm 
-  #     ./outputs/combined_hits.fasta
-  #     >> ./outputs/final_alignment.a2m
-  #   deps:
-  #     - ${input_alignment}
-  #     - ./intermediates/characterized.hmm
-  #     - ./outputs/combined_hits.fasta
-  #   outs: 
-  #     - ./outputs/final_alignment.a2m
-  #   params:
-  #     - input_alignment
+  hmmalign:
+  # add the original alignment to the hmm alignment
+    cmd: >
+      hmmalign 
+      --trim 
+      --amino 
+      --outformat a2m 
+      ./intermediates/characterized.hmm 
+      ./outputs/combined_hits.fasta
+      >> ./outputs/combined_hits_aligned.a2m
+    deps:
+      - ${input_alignment}
+      - ./intermediates/characterized.hmm
+      - ./outputs/combined_hits.fasta
+    outs: 
+      - ./outputs/combined_hits_aligned.a2m
 
-  # select_subset:
-  #   cmd: >
-  #     mmseqs easy-cluster 
-  #     ./outputs/combined_hits.fasta 
-  #     ./outputs/clustered_sequences 
-  #     ./tmp 
-  #     --min-seq-id ${mmseqs_min_seq_id} 
-  #     -c ${mmseqs_coverage} 
-  #     --cov-mode 0 
-  #     && mv ./outputs/clustered_sequences_rep_seq.fasta ./outputs/selected_subset.fasta
-  #     && rm -rf ./tmp
-  #   deps:
-  #     - ./outputs/combined_hits.fasta
-  #   params:
-  #     - mmseqs_min_seq_id
-  #     - mmseqs_coverage
-  #   outs:
-  #     - ./outputs/selected_subset.fasta
-  #     - ./outputs/clustered_sequences_cluster.tsv
+  cluster_hits:
+    cmd: >
+      mmseqs easy-cluster 
+      ./outputs/combined_hits.fasta 
+      ./outputs/clustered_sequences 
+      ./tmp 
+      --min-seq-id ${mmseqs_min_seq_id} 
+      -c ${mmseqs_coverage} 
+      --cov-mode 0 
+      && rm -rf ./tmp
+    deps:
+      - ./outputs/combined_hits.fasta
+    params:
+      - mmseqs_min_seq_id
+      - mmseqs_coverage
+    outs:
+      - ./outputs/clustered_sequences_cluster.tsv
+      - ./outputs/clustered_sequences_rep_seq.fasta
+      - ./outputs/clustered_sequences_all_seqs.fasta
 
-  # extract_representatives:
-  #   cmd: >
-  #     python ./scripts/extract_representatives.py 
-  #     ./outputs/clustered_sequences_cluster.tsv 
-  #     ./outputs/combined_hits.fasta 
-  #     ${input_alignment}
-  #     ./outputs/representatives.csv
-  #     ./outputs/cluster_metrics.json
-  #   deps:
-  #     - ./outputs/clustered_sequences_cluster.tsv
-  #     - ./outputs/combined_hits.fasta
-  #     - ${input_alignment}
-  #     - ./scripts/extract_representatives.py
-  #   params:
-  #     - input_alignment
-  #   outs:
-  #     - ./outputs/representatives.csv
-  #   metrics:
-  #     - ./outputs/cluster_metrics.json:
-  #         cache: false
+  compare_hits_to_input_seqs:
+    cmd: >
+      python ./scripts/compute_pid_coverage.py
+      ${input_alignment}
+      ./outputs/combined_hits.fasta
+      ./outputs/hit_comparisons.tsv
+    deps:
+      - ${input_alignment}
+      - ./outputs/combined_hits.fasta
+      - ./scripts/compute_pid_coverage.py
+    outs:
+      - ./outputs/hit_comparisons.tsv
