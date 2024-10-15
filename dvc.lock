@@ -1,21 +1,21 @@
 schema: '2.0'
 stages:
   hmmbuild:
-    cmd: hmmbuild --amino ./intermediates/characterized.hmm ./inputs/pdc_all_orgs.fasta
+    cmd: hmmbuild --amino ./intermediates/characterized.hmm ./inputs/ec4.1.1.1_brenda_enzymes_nonredundant_msa.mfa
     deps:
-    - path: ./inputs/pdc_all_orgs.fasta
+    - path: ./inputs/ec4.1.1.1_brenda_enzymes_nonredundant_msa.mfa
       hash: md5
-      md5: 9facac95e50e7935f03b1a63b894f7da
-      size: 12732
+      md5: c2633ce1820b3c6bdbfb643d64a6984b
+      size: 8493
     params:
       params.yaml:
         hmmbuild_options: --amino
-        input_alignment: ./inputs/pdc_all_orgs.fasta
+        input_alignment: ./inputs/ec4.1.1.1_brenda_enzymes_nonredundant_msa.mfa
     outs:
     - path: ./intermediates/characterized.hmm
       hash: md5
-      md5: 19ec9c4f027479ae8cfe3287886bbab6
-      size: 260951
+      md5: b322ee958d79b717b089b05198348fe4
+      size: 260050
   hmmsearch:
     cmd: "./scripts/hmmsearch.sh  ./intermediates/characterized.hmm  ./intermediates/hmmsearch_output\
       \  /datasets/UniprotKB/uniprot_sprot.fasta\n"
@@ -161,8 +161,8 @@ stages:
     deps:
     - path: ./intermediates/characterized.hmm
       hash: md5
-      md5: 19ec9c4f027479ae8cfe3287886bbab6
-      size: 260951
+      md5: b322ee958d79b717b089b05198348fe4
+      size: 260050
     - path: ./scripts/hmmsearch.sh
       hash: md5
       md5: 7ed5f399c85cbd74920fbff7f8a535a3
@@ -175,16 +175,16 @@ stages:
     outs:
     - path: ./intermediates/hmmsearch_output_uniprot_sprot.fasta.domtbl
       hash: md5
-      md5: 85f0a6531d2037d54881e4ceb7363b3a
-      size: 14854
+      md5: b0107c2fe1c554319c20c0f8581ff565
+      size: 15925
     - path: ./intermediates/hmmsearch_output_uniprot_sprot.fasta.out
       hash: md5
-      md5: 32ccf5187cd83fbef1fe3b68eb57bb6a
-      size: 31373
+      md5: 2180b2818ef83d58830f04f323c82da1
+      size: 31405
     - path: ./intermediates/hmmsearch_output_uniprot_sprot.fasta.tbl
       hash: md5
-      md5: 800f39f47f97aef7eccc4e970b7fafe1
-      size: 12755
+      md5: 476200b6b269e6accd087271ea833f20
+      size: 13805
   remove_uniprot_hits@uniprot_sprot.fasta:
     cmd: "python ./scripts/remove_uniprot_hits.py  ./intermediates/hmmsearch_output_uniprot_sprot.fasta.out\
       \  ./inputs/pdc_all_orgs.fasta  ./intermediates/removed_uniprot_hits_uniprot_sprot.fasta.txt\n"
@@ -216,12 +216,12 @@ stages:
     deps:
     - path: ./intermediates/characterized.hmm
       hash: md5
-      md5: 19ec9c4f027479ae8cfe3287886bbab6
-      size: 260951
+      md5: b322ee958d79b717b089b05198348fe4
+      size: 260050
     - path: ./intermediates/hmmsearch_output_uniprot_sprot.fasta.out
       hash: md5
-      md5: 32ccf5187cd83fbef1fe3b68eb57bb6a
-      size: 31373
+      md5: 2180b2818ef83d58830f04f323c82da1
+      size: 31405
     - path: ./scripts/remove_poor_coverage.py
       hash: md5
       md5: 3e0b5a4e0362b4231688a9b1ff3841c2
@@ -238,21 +238,21 @@ stages:
       size: 40
   retrieve_sequences@uniprot_sprot.fasta:
     cmd: "python ./scripts/retrieve_sequences.py  ./intermediates/hmmsearch_output_uniprot_sprot.fasta.out\
-      \  ./intermediates/removed_uniprot_hits_uniprot_sprot.fasta.txt  ./intermediates/removed_poor_coverage_uniprot_sprot.fasta.txt\
+      \  ./intermediates/removed_starting_hits_uniprot_sprot.fasta.txt  ./intermediates/removed_poor_coverage_uniprot_sprot.fasta.txt\
       \  /datasets/UniprotKB//uniprot_sprot.fasta ./intermediates/retrieved_sequences_uniprot_sprot.fasta.fasta\n"
     deps:
     - path: ./intermediates/hmmsearch_output_uniprot_sprot.fasta.out
       hash: md5
-      md5: 32ccf5187cd83fbef1fe3b68eb57bb6a
-      size: 31373
+      md5: 2180b2818ef83d58830f04f323c82da1
+      size: 31405
     - path: ./intermediates/removed_poor_coverage_uniprot_sprot.fasta.txt
       hash: md5
       md5: 670119813297a5a433bb77af16b1af04
       size: 40
-    - path: ./intermediates/removed_uniprot_hits_uniprot_sprot.fasta.txt
+    - path: ./intermediates/removed_starting_hits_uniprot_sprot.fasta.txt
       hash: md5
-      md5: a7b757a6162fb4402b121c950e7665cd
-      size: 146
+      md5: ebc42e836f954b7bf1e093d4cf2d998d
+      size: 104
     - path: ./scripts/retrieve_sequences.py
       hash: md5
       md5: 65b1c5ccd4e7beee7f5a8df63271962b
@@ -264,8 +264,8 @@ stages:
     outs:
     - path: ./intermediates/retrieved_sequences_uniprot_sprot.fasta.fasta
       hash: md5
-      md5: 9018408423bc2d6b943451573f85c4ba
-      size: 27080
+      md5: 34fa522a932b953f6a067e7ec5826ca3
+      size: 28546
   hmmalign@uniprot_sprot.fasta:
     cmd: "hmmalign  --trim  --amino  --outformat a2m  ./intermediates/characterized.hmm\
       \  ./intermediates/retrieved_sequences_uniprot_sprot.fasta.fasta  > ./outputs/final_alignment_uniprot_sprot.fasta.a2m\n"
@@ -289,8 +289,8 @@ stages:
     deps:
     - path: ./intermediates/characterized.hmm
       hash: md5
-      md5: 19ec9c4f027479ae8cfe3287886bbab6
-      size: 260951
+      md5: b322ee958d79b717b089b05198348fe4
+      size: 260050
     - path: ./scripts/hmmsearch.sh
       hash: md5
       md5: 7ed5f399c85cbd74920fbff7f8a535a3
@@ -303,16 +303,16 @@ stages:
     outs:
     - path: ./intermediates/hmmsearch_output_uniprot_trembl.fasta.domtbl
       hash: md5
-      md5: 527e78278176f29de03e295903f3ccd9
-      size: 3011762
+      md5: 97cf8bcf174854ff1e164b93edbf280f
+      size: 3202390
     - path: ./intermediates/hmmsearch_output_uniprot_trembl.fasta.out
       hash: md5
-      md5: a0a4f31cdd1ba3871df4810fc703971f
-      size: 6213932
+      md5: 7517864eae4bda6d642478c5d1dfff53
+      size: 6174393
     - path: ./intermediates/hmmsearch_output_uniprot_trembl.fasta.tbl
       hash: md5
-      md5: 9b32a7e1d049a9accb11027033e1974a
-      size: 2457164
+      md5: 0e4f8f1be93324a2727b5aba86a28bb3
+      size: 2648605
   remove_uniprot_hits@uniprot_trembl.fasta:
     cmd: "python ./scripts/remove_uniprot_hits.py  ./intermediates/hmmsearch_output_uniprot_trembl.fasta.out\
       \  ./inputs/pdc_all_orgs.fasta  ./intermediates/removed_uniprot_hits_uniprot_trembl.fasta.txt\n"
@@ -344,12 +344,12 @@ stages:
     deps:
     - path: ./intermediates/characterized.hmm
       hash: md5
-      md5: 19ec9c4f027479ae8cfe3287886bbab6
-      size: 260951
+      md5: b322ee958d79b717b089b05198348fe4
+      size: 260050
     - path: ./intermediates/hmmsearch_output_uniprot_trembl.fasta.out
       hash: md5
-      md5: a0a4f31cdd1ba3871df4810fc703971f
-      size: 6213932
+      md5: 7517864eae4bda6d642478c5d1dfff53
+      size: 6174393
     - path: ./scripts/remove_poor_coverage.py
       hash: md5
       md5: 3e0b5a4e0362b4231688a9b1ff3841c2
@@ -362,25 +362,25 @@ stages:
     outs:
     - path: ./intermediates/removed_poor_coverage_uniprot_trembl.fasta.txt
       hash: md5
-      md5: a41d57664ba0c40e72a687f07b911148
-      size: 18284
+      md5: da2896dcacfab07c243b66aea0ec0479
+      size: 17231
   retrieve_sequences@uniprot_trembl.fasta:
     cmd: "python ./scripts/retrieve_sequences.py  ./intermediates/hmmsearch_output_uniprot_trembl.fasta.out\
-      \  ./intermediates/removed_uniprot_hits_uniprot_trembl.fasta.txt  ./intermediates/removed_poor_coverage_uniprot_trembl.fasta.txt\
+      \  ./intermediates/removed_starting_hits_uniprot_trembl.fasta.txt  ./intermediates/removed_poor_coverage_uniprot_trembl.fasta.txt\
       \  /datasets/UniprotKB//uniprot_trembl.fasta ./intermediates/retrieved_sequences_uniprot_trembl.fasta.fasta\n"
     deps:
     - path: ./intermediates/hmmsearch_output_uniprot_trembl.fasta.out
       hash: md5
-      md5: a0a4f31cdd1ba3871df4810fc703971f
-      size: 6213932
+      md5: 7517864eae4bda6d642478c5d1dfff53
+      size: 6174393
     - path: ./intermediates/removed_poor_coverage_uniprot_trembl.fasta.txt
       hash: md5
-      md5: a41d57664ba0c40e72a687f07b911148
-      size: 18284
-    - path: ./intermediates/removed_uniprot_hits_uniprot_trembl.fasta.txt
+      md5: da2896dcacfab07c243b66aea0ec0479
+      size: 17231
+    - path: ./intermediates/removed_starting_hits_uniprot_trembl.fasta.txt
       hash: md5
-      md5: 72f57ff12988a3bd4bea7df4f4d5b67d
-      size: 261
+      md5: 2b768aca0629583e5e1a574cb73d03f5
+      size: 138
     - path: ./scripts/retrieve_sequences.py
       hash: md5
       md5: 65b1c5ccd4e7beee7f5a8df63271962b
@@ -392,8 +392,8 @@ stages:
     outs:
     - path: ./intermediates/retrieved_sequences_uniprot_trembl.fasta.fasta
       hash: md5
-      md5: 2f6adc3105169456c929a91a16932d2c
-      size: 6664710
+      md5: bb93f44a2ae64c4121c02929f96c0de2
+      size: 6651428
   combine_sequences:
     cmd: "cat ./intermediates/retrieved_sequences_uniprot_sprot.fasta.fasta > ./outputs/combined_hits.fasta
       && cat ./intermediates/retrieved_sequences_uniprot_trembl.fasta.fasta >> ./outputs/combined_hits.fasta\n"
@@ -411,3 +411,141 @@ stages:
       hash: md5
       md5: 48f81d704e5f9827cc86e500fda19107
       size: 6691790
+  select_subset:
+    cmd: "mmseqs easy-cluster  ./outputs/combined_hits.fasta  ./outputs/clustered_sequences\
+      \  ./tmp  --min-seq-id 0.8  -c 0.9  --cov-mode 0  && mv ./outputs/clustered_sequences_rep_seq.fasta
+      ./outputs/selected_subset.fasta && rm -rf ./tmp\n"
+    deps:
+    - path: ./outputs/combined_hits.fasta
+      hash: md5
+      md5: 48f81d704e5f9827cc86e500fda19107
+      size: 6691790
+    params:
+      params.yaml:
+        mmseqs_coverage: 0.9
+        mmseqs_min_seq_id: 0.8
+    outs:
+    - path: ./outputs/clustered_sequences_cluster.tsv
+      hash: md5
+      md5: 5e705b3c1dc945bf69fbe50300d00f65
+      size: 194412
+    - path: ./outputs/selected_subset.fasta
+      hash: md5
+      md5: 1a31d2803c8031604d50eb7b661c5220
+      size: 1882161
+  extract_representatives:
+    cmd: "python ./scripts/extract_representatives.py  ./outputs/clustered_sequences_cluster.tsv\
+      \  ./outputs/combined_hits.fasta  ./inputs/pdc_all_orgs.fasta ./outputs/representatives.csv
+      ./outputs/cluster_metrics.json\n"
+    deps:
+    - path: ./inputs/pdc_all_orgs.fasta
+      hash: md5
+      md5: 9facac95e50e7935f03b1a63b894f7da
+      size: 12732
+    - path: ./outputs/clustered_sequences_cluster.tsv
+      hash: md5
+      md5: 5e705b3c1dc945bf69fbe50300d00f65
+      size: 194412
+    - path: ./outputs/combined_hits.fasta
+      hash: md5
+      md5: 48f81d704e5f9827cc86e500fda19107
+      size: 6691790
+    - path: ./scripts/extract_representatives.py
+      hash: md5
+      md5: 81c7fba4ef27c230c62648834b3ed554
+      size: 2965
+    params:
+      params.yaml:
+        input_alignment: ./inputs/pdc_all_orgs.fasta
+    outs:
+    - path: ./outputs/cluster_metrics.json
+      hash: md5
+      md5: a0bec98b8dfccaad8c58ef3e337f6c7b
+      size: 133
+    - path: ./outputs/representatives.csv
+      hash: md5
+      md5: 603bd364349dc20f71db80d0735c4855
+      size: 1971759
+  remove_hits_starting_sequences@uniprot_sprot.fasta:
+    cmd: "python ./scripts/remove_hits_starting_sequences.py  ./intermediates/hmmsearch_output_uniprot_sprot.fasta.out\
+      \  ./inputs/ec4.1.1.1_brenda_enzymes_nonredundant_msa.mfa  ./intermediates/removed_starting_hits_uniprot_sprot.fasta.txt\n"
+    deps:
+    - path: ./inputs/ec4.1.1.1_brenda_enzymes_nonredundant_msa.mfa
+      hash: md5
+      md5: c2633ce1820b3c6bdbfb643d64a6984b
+      size: 8493
+    - path: ./intermediates/hmmsearch_output_uniprot_sprot.fasta.out
+      hash: md5
+      md5: 2180b2818ef83d58830f04f323c82da1
+      size: 31405
+    - path: ./scripts/remove_hits_starting_sequences.py
+      hash: md5
+      md5: 5ddbd264b98ce9f211f6287da5ab621f
+      size: 1418
+      isexec: true
+    params:
+      params.yaml:
+        input_alignment: ./inputs/ec4.1.1.1_brenda_enzymes_nonredundant_msa.mfa
+    outs:
+    - path: ./intermediates/removed_starting_hits_uniprot_sprot.fasta.txt
+      hash: md5
+      md5: ebc42e836f954b7bf1e093d4cf2d998d
+      size: 104
+  remove_hits_starting_sequences@uniprot_trembl.fasta:
+    cmd: "python ./scripts/remove_hits_starting_sequences.py  ./intermediates/hmmsearch_output_uniprot_trembl.fasta.out\
+      \  ./inputs/ec4.1.1.1_brenda_enzymes_nonredundant_msa.mfa  ./intermediates/removed_starting_hits_uniprot_trembl.fasta.txt\n"
+    deps:
+    - path: ./inputs/ec4.1.1.1_brenda_enzymes_nonredundant_msa.mfa
+      hash: md5
+      md5: c2633ce1820b3c6bdbfb643d64a6984b
+      size: 8493
+    - path: ./intermediates/hmmsearch_output_uniprot_trembl.fasta.out
+      hash: md5
+      md5: 7517864eae4bda6d642478c5d1dfff53
+      size: 6174393
+    - path: ./scripts/remove_hits_starting_sequences.py
+      hash: md5
+      md5: 5ddbd264b98ce9f211f6287da5ab621f
+      size: 1418
+      isexec: true
+    params:
+      params.yaml:
+        input_alignment: ./inputs/ec4.1.1.1_brenda_enzymes_nonredundant_msa.mfa
+    outs:
+    - path: ./intermediates/removed_starting_hits_uniprot_trembl.fasta.txt
+      hash: md5
+      md5: 2b768aca0629583e5e1a574cb73d03f5
+      size: 138
+  test_stage:
+    cmd: echo "--target_dbs uniprot_sprot.fasta uniprot_trembl.fasta" > test.txt
+    params:
+      params.yaml:
+        target_dbs:
+          target_dbs:
+          - uniprot_sprot.fasta
+          - uniprot_trembl.fasta
+    outs:
+    - path: test.txt
+      hash: md5
+      md5: dfff34ea7ea51b725621313265648bcb
+      size: 54
+  combine_fasta:
+    cmd: "python ./scripts/combine_fasta.py ./outputs/combined_hits.fasta $(for db
+      in --target_dbs uniprot_sprot.fasta uniprot_trembl.fasta; do echo ./intermediates/retrieved_sequences_$db.fasta;
+      done)\n"
+    deps:
+    - path: ./scripts/combine_fasta.py
+      hash: md5
+      md5: 1464932fd89844d0dd967ecf3332d0d2
+      size: 1191
+    params:
+      params.yaml:
+        target_dbs:
+          target_dbs:
+          - uniprot_sprot.fasta
+          - uniprot_trembl.fasta
+    outs:
+    - path: ./outputs/combined_hits.fasta
+      hash: md5
+      md5: 9cf1f6c6ae53a702b406c9acfb419353
+      size: 6679974

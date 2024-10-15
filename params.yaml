@@ -1,9 +1,10 @@
 # Input files
-input_alignment: "./inputs/pdc_all_orgs.fasta"
+input_alignment: "./inputs/ec4.1.1.1_brenda_enzymes_nonredundant_msa.mfa"
 db_location: /datasets/UniprotKB/
 target_dbs:
-  - "uniprot_sprot.fasta"
-  - "uniprot_trembl.fasta"
+  target_dbs:
+    - "uniprot_sprot.fasta"
+    - "uniprot_trembl.fasta"
 
 # hmm search
 hmmbuild_options: "--amino"
@@ -11,5 +12,5 @@ hmmsearch_evalue: 1e-90
 min_coverage: 0.85
 
 # clustering
-mmseqs_min_seq_id: 0.9
+mmseqs_min_seq_id: 0.8
 mmseqs_coverage: 0.9
