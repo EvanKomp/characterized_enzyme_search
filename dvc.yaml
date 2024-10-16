@@ -146,3 +146,20 @@ stages:
       - ./scripts/compute_pid_coverage.py
     outs:
       - ./outputs/hit_comparisons.tsv
+
+  # predict enzyme temperature
+  # NOTE that this needs a different environment activated:
+  # https://github.com/EvanKomp/enzyme_thermal_benchmark
+  # follow the setup there.
+  predict_topt:
+    cmd: >
+      python ./scripts/predict_topt.py
+      ./outputs/combined_hits.fasta
+      ./outputs/topt_predictions.tsv
+    deps:
+      - ./outputs/combined_hits.fasta
+      - ./scripts/predict_topt.py
+    outs:
+      - ./outputs/topt_predictions.csv
+    params:
+      - max_seq_len

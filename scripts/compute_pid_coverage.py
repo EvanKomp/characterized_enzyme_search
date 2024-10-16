@@ -30,7 +30,7 @@ def run_mmseqs_search(query, target, output_prefix):
     subprocess.run(['mmseqs', 'createdb', query, f'{output_prefix}_queryDB'])
     subprocess.run(['mmseqs', 'createdb', target, f'{output_prefix}_targetDB'])
     subprocess.run(['mmseqs', 'search', f'{output_prefix}_queryDB', f'{output_prefix}_targetDB',
-                    f'{output_prefix}_resultDB', 'tmp', '-s', '7.5', '--alignment-mode', '3'])
+                    f'{output_prefix}_resultDB', 'tmp', '-s', '8.5', '--alignment-mode', '3', '--min-seq-id', '0.3'])
     subprocess.run(['mmseqs', 'convertalis', f'{output_prefix}_queryDB', f'{output_prefix}_targetDB',
                     f'{output_prefix}_resultDB', f'{output_prefix}_results.tsv',
                     '--format-output', 'query,target,pident,fident,nident,qlen,tlen,alnlen,mismatch,qcov,tcov'])

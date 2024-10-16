@@ -585,10 +585,29 @@ stages:
       size: 6679974
     - path: ./scripts/compute_pid_coverage.py
       hash: md5
-      md5: ac313ccfc3640e2c6c4d1fb3168834c7
-      size: 2897
+      md5: 90430eff48e1a7a8257691cd70013012
+      size: 2930
     outs:
     - path: ./outputs/hit_comparisons.tsv
       hash: md5
-      md5: 5b84b6f7d1a41c90a674cd4381356882
-      size: 119511
+      md5: c213829ebb8719a77d997a326dd68654
+      size: 119486
+  predict_topt:
+    cmd: "python ./scripts/predict_topt.py ./outputs/combined_hits.fasta ./outputs/topt_predictions.tsv\n"
+    deps:
+    - path: ./outputs/combined_hits.fasta
+      hash: md5
+      md5: 9cf1f6c6ae53a702b406c9acfb419353
+      size: 6679974
+    - path: ./scripts/predict_topt.py
+      hash: md5
+      md5: 3b7a6a504e240312a8e443ef9a8705f2
+      size: 1591
+    params:
+      params.yaml:
+        max_seq_len: 1500
+    outs:
+    - path: ./outputs/topt_predictions.csv
+      hash: md5
+      md5: 21c42b332c81ac2c311885ec21a18f60
+      size: 1251742

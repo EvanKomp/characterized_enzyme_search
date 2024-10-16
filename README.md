@@ -1,36 +1,60 @@
 # characterized_enzyme_search
-Gather homologs from a set of characterized enzymes
 
-## 1. HMM Building
-- Build HMM from input alignment
-- Output: `characterized.hmm`
+Gather homologs from a set of characterized enzymes.
 
-## 2. HMM Search
-- Search HMM against target databases
-- Outputs: `.tbl`, `.domtbl`, `.out` files
+## Setup
 
-## 3. Hit Filtering
-### a. Remove UniProt Hits
-- Filter out sequences from input alignment
-- Output: `removed_uniprot_hits_{db}.txt`
+1. Install required dependencies (hmmer, mmseqs, biopython)
+2. Configure `params.yaml` with input files and parameters
+3. Install DVC for reproducibility
 
-### b. Remove Poor Coverage Hits
-- Filter hits based on minimum coverage
-- Output: `removed_poor_coverage_{db}.txt`
+## Pipeline
 
-## 4. Sequence Retrieval
-- Retrieve filtered sequences from databases
-- Output: `retrieved_sequences_{db}.fasta`
+1. **HMM Building**: `hmmbuild`
+   - Input: Alignment file
+   - Output: `characterized.hmm`
 
-## 5. Sequence Combination
-- Combine retrieved sequences from all databases
-- Output: `combined_hits.fasta`
+2. **HMM Search**: `hmmsearch.sh`
+   - Search HMM against target databases
+   - Outputs: `.tbl`, `.domtbl`, `.out` files
 
-## 6. Multiple Sequence Alignment
-- Align retrieved sequences to original HMM
-- Include original alignment
-- Output: `final_alignment.a2m`
+3. **Hit Filtering**:
+   a. `remove_hits_starting_sequences.py`: Remove input sequences
+   b. `remove_poor_coverage.py`: Filter based on coverage
+
+4. **Sequence Retrieval**: `retrieve_sequences.py`
+   - Retrieve filtered sequences from databases
+
+5. **Sequence Combination**: `combine_fasta.py`
+   - Combine retrieved sequences
+   - Output: `combined_hits.fasta`
+
+6. **Multiple Sequence Alignment**: `hmmalign`
+   - Align retrieved sequences to original HMM
+   - Output: `combined_hits_aligned.a2m`
+
+7. **Sequence Clustering**: `mmseqs easy-cluster`
+   - Cluster retrieved sequences
+   - Outputs: `clustered_sequences_*.fasta/tsv`
+
+8. **Sequence Comparison**: `compute_pid_coverage.py`
+   - Compare hits to input sequences
+   - Output: `hit_comparisons.tsv`
+
+9. **Enzyme Temperature Prediction**: `predict_topt.py`
+   - Predict optimal temperature for enzymes
+   - Output: `topt_predictions.csv`
+
+## Usage
+
+Run the pipeline using DVC:
+
+```
+dvc repro
+```
 
 ## Note
+
 - Pipeline uses DVC for reproducibility
-- Params configurable in `params.yaml`
+- Parameters configurable in `params.yaml`
+- Enzyme temperature prediction requires a separate environment setup
